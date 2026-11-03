@@ -8,8 +8,9 @@
 
 ## 一句话
 
-**首版可构建，未在 GT8 真机验证。** 6.6 分支在上游只做到"能编、未验证"，本仓库补了
-KMI gen 8 守卫、OPlus ddl kprobe 守卫、pid_max clamp 与诊断脚本，但稳定性结论必须用真机数据说话。
+**GT8 真机验证通过：6 个模块全部加载，`gt8-verify.sh` 26 PASS / 0 FAIL / 1 WARN（2026-11-03 21:03）。**
+macvlan 实测可建接口、ip6tables nat 可用、devtmpfs 已注册、PID/IPC 命名空间可用、
+ddl 守卫与 pids 控制器均生效。唯一 WARN 是脚本没自动找到 Droidspaces 二进制，需在 App 内跑 `check`。
 
 ---
 
@@ -23,8 +24,8 @@ KMI gen 8 守卫、OPlus ddl kprobe 守卫、pid_max clamp 与诊断脚本，但
 | DDK android15-6.6 构建链 | ✅ | Docker / 无 Docker / GitHub Actions 三套 |
 | 工具链一致性 | ✅ | DDK 镜像 `clang-r510928` = 设备内核 `Android (11368308) clang 18.0.0 (r510928)`，KCFI 可匹配 |
 | 6 模块编译通过 | ✅ | CI run #41634576450：6 个 .ko 全部生成并通过 `vermagic=6.6` 校验 |
-| 真机 insmod | ⏳ | 需诊断报告 + 逐模块加载记录 |
-| 容器运行 | ⏳ | 前置条件：`droidspaces check --json` → `requirements_met=1` |
+| 真机 insmod | ✅ | 2026-11-03 21:03：6/6 加载，`gt8-verify.sh` 26 PASS / 0 FAIL / 1 WARN |
+| 容器运行 | ⏳ | 前置条件：`droidspaces check --json` → `requirements_met=1`（需在 App 内跑） |
 | user namespace | ❌ | 编译期限制，LKM 无解 |
 
 ---
