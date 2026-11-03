@@ -938,7 +938,12 @@ static int macvlan_init(struct net_device *dev)
 	dev->vlan_features	= lowerdev->vlan_features & MACVLAN_FEATURES;
 	dev->vlan_features	|= ALWAYS_ON_OFFLOADS;
 	dev->hw_enc_features    |= dev->features;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 9, 0)
 	dev->lltx		= true;
+#else
+	/* 6.9 之前没有 net_device::lltx，等价语义是 NETIF_F_LLTX */
+	dev->features		|= NETIF_F_LLTX;
+#endif
 	netif_inherit_tso_max(dev, lowerdev);
 	dev->hard_header_len	= lowerdev->hard_header_len;
 	macvlan_set_lockdep_class(dev);
@@ -1090,6 +1095,7 @@ static int macvlan_ethtool_get_link_ksettings(struct net_device *dev,
 	return __ethtool_get_link_ksettings(vlan->lowerdev, cmd);
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0)
 static int macvlan_ethtool_get_ts_info(struct net_device *dev,
 				       struct kernel_ethtool_ts_info *info)
 {
@@ -1097,6 +1103,25 @@ static int macvlan_ethtool_get_ts_info(struct net_device *dev,
 
 	return ethtool_get_ts_info_by_layer(real_dev, info);
 }
+#else
+static int macvlan_ethtool_get_ts_info(struct net_device *dev,
+				       struct ethtool_ts_info *info)
+{
+	struct net_device *real_dev = macvlan_dev_real_dev(dev);
+	const struct ethtool_ops *ops = real_dev->ethtool_ops;
+	struct phy_device *phydev = real_dev->phydev;
+
+	if (phydev && phydev->drv && phydev->drv->ts_info)
+		return phydev->drv->ts_info(phydev, info);
+	if (ops->get_ts_info)
+		return ops->get_ts_info(real_dev, info);
+
+	info->so_timestamping = SOF_TIMESTAMPING_RX_SOFTWARE |
+				SOF_TIMESTAMPING_SOFTWARE;
+	info->phc_index = -1;
+	return 0;
+}
+#endif
 
 static netdev_features_t macvlan_fix_features(struct net_device *dev,
 					      netdev_features_t features)
@@ -1221,7 +1246,9 @@ void macvlan_common_setup(struct net_device *dev)
 	dev->priv_flags	       &= ~IFF_TX_SKB_SHARING;
 	netif_keep_dst(dev);
 	dev->priv_flags	       |= IFF_UNICAST_FLT;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0)
 	dev->change_proto_down	= true;
+#endif
 	dev->netdev_ops		= &macvlan_netdev_ops;
 	dev->needs_free_netdev	= true;
 	dev->priv_destructor	= macvlan_dev_free;
