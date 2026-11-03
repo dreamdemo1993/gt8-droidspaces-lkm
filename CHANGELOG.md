@@ -1,9 +1,19 @@
 # 变更记录
 
-## v1.0.0-gt8 (2026-11-03)
+## v1.0.0 (2026-11-03)
 
 首个 GT8 适配版本。基于 [op15-droidspaces-lkm](https://github.com/Poplar477a/op15-droidspaces-lkm)
 （其基座为 [droidspaces-6.12-pmb110](https://github.com/ai-luo2006/droidspaces-6.12-pmb110)）。
+
+### 真机验证（realme GT8 / RMX6699，2026-11-03）
+
+- 6 个模块全部加载：`droid_lkm` / `vendor` / `misc` / `pids` / `macvlan` / `ip6table_nat`
+- `gt8-verify.sh`：**26 PASS / 0 FAIL**
+- Droidspaces v7.1.0 `check --json`：**`requirements_met=1`**，必需项全绿
+- macvlan 实测可建接口，`ip6tables -t nat` 可用，devtmpfs 已注册，PID/IPC 命名空间可用
+- `user_ns` / `cpu_limit` 为 0：前者编译期裁剪、后者 `CONFIG_CFS_BANDWIDTH` 未开，均为预期
+
+### 适配内容
 
 - **目标改为 realme GT8 / RMX6699**：内核 `6.6.118-android15-8-g9bc34d5b0c79-abogki537459655-4k`，
   KMI generation 8，Android 17 / ColorOS 17。
