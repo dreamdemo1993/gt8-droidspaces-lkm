@@ -88,12 +88,13 @@ if [ -r "$CFG" ]; then
 fi
 
 sec "6. 运行期符号（MISS 的符号决定要补哪套 shim）"
-for s in ksys_unshare kernel_clone kernel_clone3 copy_namespaces alloc_pid free_pid \
+out "注: kernel_clone3 是可选 syscall、pid_ns_for_children 是 nsproxy 结构体字段，均不是内核符号，故不检查"
+for s in ksys_unshare kernel_clone copy_namespaces alloc_pid free_pid \
          switch_task_namespaces proc_alloc_inum proc_free_inum group_send_sig_info \
          kernel_wait4 do_mmap do_vmi_munmap do_mas_munmap wake_q_add wake_up_q \
          shmem_kernel_file_setup get_tree_nodev security_msg_queue_alloc \
          register_filesystem kern_mount nop_mnt_idmap \
-         init_pid_ns pid_ns_for_children \
+         init_pid_ns \
          _text _end kimage_voffset vmalloc_to_pfn __set_fixmap; do
   if grep -qw "$s" /proc/kallsyms 2>/dev/null; then
     out "OK   $s"
