@@ -35,18 +35,22 @@
 
 ## 状态
 
-**首版：可构建、未真机验证。**
+**6 个模块已全部编译通过（CI），待真机加载验证。**
 
-上游对 6.6 的结论是"能编、未验证"（`droid_lkm/Makefile` 的 `DLKM_OPT` 只放行 6.6/6.12）。
-本仓库把 6.6 作为主线并加了 GT8 守卫，但**能不能在这台机器上稳定加载，必须先跑诊断脚本**：
+- 构建：GitHub Actions run #41634576450 ✅（`droid_lkm` / `vendor` / `misc` / `pids` / `macvlan` / `ip6table_nat`）
+- 工具链：DDK `android15-6.6` 自带 `clang-r510928`，与设备内核 `Android (11368308) clang 18.0.0 (r510928)` 完全一致
+- 产物：`phDroid-GT8-v1.0.0-gt8.zip`（[gt8-latest release](https://github.com/dreamdemo1993/gt8-droidspaces-lkm/releases/tag/gt8-latest)）
+- vermagic：`6.6.127-4k-...-dirty SMP preempt mod_unload modversions aarch64`，`CONFIG_MODVERSIONS=y` 下内核只比对空格后部分，可加载到 `6.6.118-android15-8`
+
+剩下的是真机验证：`insmod` 是否 `Unknown symbol` / `disagrees about version of symbol` / `CFI failure`，以及容器能否起来。
 
 ```sh
 su -c 'sh /data/adb/modules/phdroid-gt8/tools/gt8-diag.sh'
 ```
 
-把 `/sdcard/Download/gt8-diag-*.txt` 发回，重点看四项：`/proc/version` 里的 clang 版本、
-`/sys/kernel/btf/vmlinux` 是否存在、`CONFIG_MODVERSIONS/CFI_CLANG/KALLSYMS_ALL`、以及
-`update_ddl_hit_history` 等符号是否存在。
+诊断报告重点看四项：`/proc/version` 里的 clang 版本（已确认 r510928）、
+`/sys/kernel/btf/vmlinux`（已确认有）、`CONFIG_MODVERSIONS/CFI_CLANG/KALLSYMS_ALL`（已确认）、
+以及 `update_ddl_hit_history`（已确认存在）。
 
 ## 补了什么
 
