@@ -1,0 +1,71 @@
+name: build-gt8
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  KMI: android15-6.6
+  DDK_IMAGE: docker.cnb.cool/ylarod/ddk/ddk-min:android15-6.6
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Pull DDK image
+        run: |
+          set -e
+          echo "image: $DDK_IMAGE"
+          docker pull "$DDK_IMAGE"
+          docker run --rm "$DDK_IMAGE" sh -c 'ls /opt/ddk/kdir; ls /opt/ddk/clang'
+
+      - name: Build kernel modules
+        run: |
+          set -e
+          bash scripts/build-docker.sh "$KMI"
+          ls -l build/out/"$KMI"
+
+      - name: Package KernelSU module
+        run: |
+          set -e
+          bash scripts/package.sh "$KMI"
+          unzip -l dist/*.zip | head -60
+
+      - name: Verify vermagic is 6.6
+        run: |
+          set -e
+          for m in droid_lkm droid_lkm_vendor droid_lkm_misc droid_lkm_pids macvlan ip6table_nat; do
+            [ -f "build/out/$KMI/$m.ko" ] || { echo "missing $m.ko"; exit 1; }
+          done
+          for ko in build/out/"$KMI"/*.ko; do
+            echo "== $ko"
+            strings "$ko" | grep -m1 'vermagic=' || { echo "no vermagic in $ko"; exit 1; }
+          done
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: phDroid-GT8-${{ env.KMI }}
+          path: |
+            dist/*.zip
+            build/out/${{ env.KMI }}/*.ko
+          if-no-files-found: error
+
+      - name: Attach zip to a rolling release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          gh release delete gt8-latest --yes --cleanup-tag 2>/dev/null || true
+          gh release create gt8-latest dist/*.zip \
+            --title "phDroid GT8 rolling build" \
+            --notes "Automated build from ${GITHUB_SHA}" \
+            --prerelease
