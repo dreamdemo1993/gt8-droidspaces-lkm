@@ -1,11 +1,13 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 /*
- * macvlan_shim.h - 把内核未导出的 7 个符号重定向到本模块的 shim。
+ * macvlan_shim.h - 把内核未导出/受保护的 8 个符号重定向到本模块的 shim。
  *
- * 背景: 本机内核 CONFIG_MACVLAN=n + CONFIG_TRIM_UNUSED_KSYMS=y，这 7 个函数
+ * 背景: 本机内核 CONFIG_MACVLAN=n + CONFIG_TRIM_UNUSED_KSYMS=y，这些函数
  *       虽然存在（kallsyms 可见）但没有导出条目，标准模块链接时会报
- *       "Unknown symbol"。这里用宏把调用/取地址改名为 shim，shim 再用加载时
- *       传入的运行时地址调用真实函数（不受导出表与 KASLR 影响）。
+ *       "Unknown symbol"。另外 realme/OPPO 内核把 dev_uc_add_excl 列为
+ *       "Protected symbol"（err -13），直接引用会被拒绝装载。
+ *       这里用宏把调用/取地址改名为 shim，shim 再用加载时传入的运行时地址
+ *       调用真实函数（不受导出表、保护名单与 KASLR 影响）。
  *
  * 由 -include 强制插到 macvlan_core.c 所有 include 之前，因此内核头文件里的
  * extern 声明也会一并改名，签名由编译器校验。
@@ -26,6 +28,7 @@ struct hh_cache;
 int droid_mv_dev_forward_skb(struct net_device *dev, struct sk_buff *skb);
 int droid_mv___dev_forward_skb(struct net_device *dev, struct sk_buff *skb);
 int droid_mv_dev_mc_add_excl(struct net_device *dev, const unsigned char *addr);
+int droid_mv_dev_uc_add_excl(struct net_device *dev, const unsigned char *addr);
 struct sk_buff *droid_mv_ip_check_defrag(struct net *net, struct sk_buff *skb,
 					 u32 user);
 int droid_mv_ndo_dflt_fdb_dump(struct sk_buff *skb,
@@ -41,6 +44,7 @@ void droid_mv_eth_header_cache_update(struct hh_cache *hh,
 #define dev_forward_skb			droid_mv_dev_forward_skb
 #define __dev_forward_skb		droid_mv___dev_forward_skb
 #define dev_mc_add_excl			droid_mv_dev_mc_add_excl
+#define dev_uc_add_excl			droid_mv_dev_uc_add_excl
 #define ip_check_defrag			droid_mv_ip_check_defrag
 #define ndo_dflt_fdb_dump		droid_mv_ndo_dflt_fdb_dump
 #define eth_header_cache		droid_mv_eth_header_cache
