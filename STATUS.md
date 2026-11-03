@@ -25,7 +25,7 @@ ddl 守卫与 pids 控制器均生效。唯一 WARN 是脚本没自动找到 Dro
 | 工具链一致性 | ✅ | DDK 镜像 `clang-r510928` = 设备内核 `Android (11368308) clang 18.0.0 (r510928)`，KCFI 可匹配 |
 | 6 模块编译通过 | ✅ | CI run #41634576450：6 个 .ko 全部生成并通过 `vermagic=6.6` 校验 |
 | 真机 insmod | ✅ | 2026-11-03 21:03：6/6 加载，`gt8-verify.sh` 26 PASS / 0 FAIL / 1 WARN |
-| 容器运行 | ⏳ | 前置条件：`droidspaces check --json` → `requirements_met=1`（需在 App 内跑） |
+| 容器运行 | ✅ | `droidspaces check --json` → `requirements_met=1`（v7.1.0，必需项全绿） |
 | user namespace | ❌ | 编译期限制，LKM 无解 |
 
 ---
