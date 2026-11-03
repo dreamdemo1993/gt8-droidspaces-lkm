@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * macvlan_shim.c - 用运行时地址调用内核未导出的 7 个函数。
+ * macvlan_shim.c - 用运行时地址调用内核未导出/受保护的 8 个函数。
  *
  * 地址由加载脚本从 /proc/kallsyms 读出后作为模块参数传入（KASLR 每次开机变化，
  * 所以不能编死）。所有 wrapper 都标 __nocfi，避免 KCFI 对间接调用做类型校验。
  *
  * 地址为 0 时不崩溃，返回"优雅失败"（-ENOSYS / 原 skb / 0），只是功能不可用。
+ *
+ * 2026-11-03 GT8：dev_uc_add_excl 在 realme/OPPO 内核上属于 "Protected symbol"
+ * （insmod 报 Permission denied，dmesg: Protected symbol: dev_uc_add_excl err -13），
+ * 直接引用会被内核拒绝装载，因此和未导出符号一样改成运行期地址调用。
  */
 
 #include <linux/module.h>
@@ -23,6 +27,7 @@
 static unsigned long mv_a_dev_forward_skb;
 static unsigned long mv_a___dev_forward_skb;
 static unsigned long mv_a_dev_mc_add_excl;
+static unsigned long mv_a_dev_uc_add_excl;
 static unsigned long mv_a_ip_check_defrag;
 static unsigned long mv_a_ndo_dflt_fdb_dump;
 static unsigned long mv_a_eth_header_cache;
@@ -34,6 +39,8 @@ module_param_named(addr___dev_forward_skb, mv_a___dev_forward_skb, ulong, 0444);
 MODULE_PARM_DESC(addr___dev_forward_skb, "runtime address of __dev_forward_skb");
 module_param_named(addr_dev_mc_add_excl, mv_a_dev_mc_add_excl, ulong, 0444);
 MODULE_PARM_DESC(addr_dev_mc_add_excl, "runtime address of dev_mc_add_excl");
+module_param_named(addr_dev_uc_add_excl, mv_a_dev_uc_add_excl, ulong, 0444);
+MODULE_PARM_DESC(addr_dev_uc_add_excl, "runtime address of dev_uc_add_excl");
 module_param_named(addr_ip_check_defrag, mv_a_ip_check_defrag, ulong, 0444);
 MODULE_PARM_DESC(addr_ip_check_defrag, "runtime address of ip_check_defrag");
 module_param_named(addr_ndo_dflt_fdb_dump, mv_a_ndo_dflt_fdb_dump, ulong, 0444);
@@ -63,6 +70,7 @@ int __init droid_mv_shim_resolve(void)
 		{ "dev_forward_skb",        &mv_a_dev_forward_skb,        true  },
 		{ "__dev_forward_skb",      &mv_a___dev_forward_skb,      true  },
 		{ "dev_mc_add_excl",        &mv_a_dev_mc_add_excl,        true  },
+		{ "dev_uc_add_excl",        &mv_a_dev_uc_add_excl,        true  },
 		{ "eth_header_cache",       &mv_a_eth_header_cache,       true  },
 		{ "ip_check_defrag",        &mv_a_ip_check_defrag,        false },
 		{ "ndo_dflt_fdb_dump",      &mv_a_ndo_dflt_fdb_dump,      false },
@@ -134,6 +142,18 @@ int __nocfi droid_mv_dev_mc_add_excl(struct net_device *dev,
 
 	if (unlikely(!fn)) {
 		mv_warn_once("dev_mc_add_excl");
+		return -ENOSYS;
+	}
+	return fn(dev, addr);
+}
+
+int __nocfi droid_mv_dev_uc_add_excl(struct net_device *dev,
+				     const unsigned char *addr)
+{
+	typeof(&dev_uc_add_excl) fn = (void *)mv_a_dev_uc_add_excl;
+
+	if (unlikely(!fn)) {
+		mv_warn_once("dev_uc_add_excl");
 		return -ENOSYS;
 	}
 	return fn(dev, addr);
