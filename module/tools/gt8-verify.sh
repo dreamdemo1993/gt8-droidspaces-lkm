@@ -143,6 +143,9 @@ else
 		[ -x "$c" ] && { DS=$c; break; }
 	done
 fi
+if [ -z "$DS" ]; then
+	DS=$(find /data/adb /data/local /data/data -maxdepth 5 -type f -name droidspaces 2>/dev/null | head -1)
+fi
 if [ -n "$DS" ]; then
 	o "binary: $DS"
 	J=$("$DS" check --json 2>/dev/null)
