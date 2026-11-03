@@ -35,22 +35,20 @@
 
 ## 状态
 
-**6 个模块已全部编译通过（CI），待真机加载验证。**
+**GT8 真机验证通过（2026-11-03）：6/6 模块加载，`gt8-verify.sh` 26 PASS / 0 FAIL / 1 WARN。**
 
-- 构建：GitHub Actions run #41634576450 ✅（`droid_lkm` / `vendor` / `misc` / `pids` / `macvlan` / `ip6table_nat`）
+- 构建：GitHub Actions（`droid_lkm` / `vendor` / `misc` / `pids` / `macvlan` / `ip6table_nat`）
 - 工具链：DDK `android15-6.6` 自带 `clang-r510928`，与设备内核 `Android (11368308) clang 18.0.0 (r510928)` 完全一致
 - 产物：`phDroid-GT8-v1.0.0-gt8.zip`（[gt8-latest release](https://github.com/dreamdemo1993/gt8-droidspaces-lkm/releases/tag/gt8-latest)）
-- vermagic：`6.6.127-4k-...-dirty SMP preempt mod_unload modversions aarch64`，`CONFIG_MODVERSIONS=y` 下内核只比对空格后部分，可加载到 `6.6.118-android15-8`
+- vermagic：`6.6.127-4k-...-dirty SMP preempt mod_unload modversions aarch64`，`CONFIG_MODVERSIONS=y` 下可加载到 `6.6.118-android15-8`
 
-剩下的是真机验证：`insmod` 是否 `Unknown symbol` / `disagrees about version of symbol` / `CFI failure`，以及容器能否起来。
+真机实测：macvlan 可建接口、ip6tables nat 可用、devtmpfs 已注册、PID/IPC 命名空间可用、
+ddl 守卫与 pids 控制器生效。`CONFIG_USER_NS` 仍不可用（编译期裁剪，模块补不了）。
 
 ```sh
-su -c 'sh /data/adb/modules/phdroid-gt8/tools/gt8-diag.sh'
+su -c 'sh /data/adb/modules/phdroid-gt8/tools/gt8-verify.sh'   # 加载后验证
+su -c 'sh /data/adb/modules/phdroid-gt8/tools/gt8-diag.sh'     # 环境诊断
 ```
-
-诊断报告重点看四项：`/proc/version` 里的 clang 版本（已确认 r510928）、
-`/sys/kernel/btf/vmlinux`（已确认有）、`CONFIG_MODVERSIONS/CFI_CLANG/KALLSYMS_ALL`（已确认）、
-以及 `update_ddl_hit_history`（已确认存在）。
 
 ## 补了什么
 
