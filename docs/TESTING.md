@@ -55,13 +55,34 @@ dmesg | grep -i "ddl guard"           # 期望 armed
 - 跑一次容器创建/进入/`apt`；
 - 任何一次重启都先取 `tools/crashlog.sh`。
 
-## 结果（待填）
+## 结果
+
+### 2026-11-03 21:03（首轮真机验证）
+
+`gt8-verify.sh`：**PASS=26 FAIL=0 WARN=1 → 通过**
 
 | 项 | 结果 |
 |---|---|
-| 6 模块加载 | |
+| 6 模块加载 | ✅ `droid_lkm` / `vendor` / `misc` / `pids` / `macvlan` / `ip6table_nat` |
+| KMI 校验 | ✅ `6.6.118-android15-8-...` gen 8 |
+| dmesg | ✅ 无 `Unknown symbol` / `disagrees about version` / `CFI failure` |
+| ddl 守卫 | ✅ `ddl guard armed, pid >= 32768 skipped` |
+| ghost task | ✅ 已命中 `oplus_bsp_sched_assist` |
+| pids 控制器 | ✅ `pids limit enforcement active`，`cgroup.controllers` 出现 pids |
+| devtmpfs | ✅ 已注册（`registered only`，节点需 userland mknod） |
+| PID/IPC ns | ✅ `unshare -p/-i` 均可用，`/proc/self/ns/{pid,ipc}` 存在 |
+| macvlan | ✅ 实测 `ip link add mv-verify link wlan0 type macvlan mode bridge` 成功 |
+| ip6 nat | ✅ `ip6tables -t nat -L -n` 可用 |
+| pid_max | ✅ 32768 |
+| `user_ns` | ❌ 不可用（`CONFIG_USER_NS=n`，编译期限制，预期） |
+| `droidspaces check` | ⚠️ 脚本未找到二进制，需在 App 内跑 |
+| 连续运行 | 待补 |
+
+### 待补
+
+| 项 | 结果 |
+|---|---|
 | `requirements_met` | |
 | 容器启动 / 进入 | |
-| `su` / `apt` | |
-| `user_ns` | 0（预期，编译期无解） |
-| 连续运行 | |
+| 容器内 `su` / `apt` | |
+| 连续运行 ≥ 2h | |
