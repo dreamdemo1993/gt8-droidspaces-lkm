@@ -43,7 +43,8 @@
 - vermagic：`6.6.127-4k-...-dirty SMP preempt mod_unload modversions aarch64`，`CONFIG_MODVERSIONS=y` 下可加载到 `6.6.118-android15-8`
 
 真机实测：macvlan 可建接口、ip6tables nat 可用、devtmpfs 已注册、PID/IPC 命名空间可用、
-ddl 守卫与 pids 控制器生效。`CONFIG_USER_NS` 仍不可用（编译期裁剪，模块补不了）。
+ddl 守卫与 pids 控制器生效。Droidspaces v7.1.0 `check --json`：**`requirements_met=1`**，必需项全绿。
+`CONFIG_USER_NS` 仍不可用（编译期裁剪，模块补不了）；`cpu_limit` 为 0（`CONFIG_CFS_BANDWIDTH` 未开，可选）。
 
 ```sh
 su -c 'sh /data/adb/modules/phdroid-gt8/tools/gt8-verify.sh'   # 加载后验证
