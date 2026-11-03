@@ -75,14 +75,15 @@ dmesg | grep -i "ddl guard"           # 期望 armed
 | ip6 nat | ✅ `ip6tables -t nat -L -n` 可用 |
 | pid_max | ✅ 32768 |
 | `user_ns` | ❌ 不可用（`CONFIG_USER_NS=n`，编译期限制，预期） |
-| `droidspaces check` | ⚠️ 脚本未找到二进制，需在 App 内跑 |
+| `droidspaces check` | ✅ `requirements_met=1`（v7.1.0，`/data/local/Droidspaces/bin/droidspaces`） |
+| `cpu_limit` | ❌ 0（`CONFIG_CFS_BANDWIDTH` 未开 / cpu 控制器不可用，`--cpus` 会被跳过，可选） |
 | 连续运行 | 待补 |
 
 ### 待补
 
 | 项 | 结果 |
 |---|---|
-| `requirements_met` | |
-| 容器启动 / 进入 | |
-| 容器内 `su` / `apt` | |
-| 连续运行 ≥ 2h | |
+| `requirements_met` | ✅ 1 |
+| 容器启动 / 进入 | 待测 |
+| 容器内 `su` / `apt` | 待测 |
+| 连续运行 ≥ 2h | 待测 |
