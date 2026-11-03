@@ -20,6 +20,19 @@
 | 工具链 | DDK `android15-6.6`（clang + KDIR 由镜像提供） |
 | Root | KernelSU / APatch |
 
+### GT8 实测参数（2026-11-03 诊断报告）
+
+| 项 | 实测值 |
+|---|---|
+| 编译器 | `Android (11368308) clang version 18.0.0`（based on **r510928**），LLD 18.0.0 |
+| KMI | `*-android15-8-*` ✔ |
+| BTF | 有（`/sys/kernel/btf/vmlinux` 6.1 MB） |
+| 关键 config | `MODULES=y`、`MODVERSIONS=y`、`CFI_CLANG=y`、`KALLSYMS_ALL=y`、`KPROBES=y`、`DEBUG_INFO_BTF=y`、`TRIM_UNUSED_KSYMS=y`、`MODULE_SIG=y`（**非** FORCE） |
+| 缺失能力 | `PID_NS`、`IPC_NS`、`SYSVIPC`、`POSIX_MQUEUE`、`USER_NS`、`DEVTMPFS`、`MACVLAN`、`CGROUP_PIDS`、`IP6_NF_NAT`（正是模块要补的） |
+| 运行期符号 | `ksys_unshare`、`kernel_clone`、`copy_namespaces`、`alloc_pid`、`do_vmi_munmap`、`register_filesystem`、`kern_mount`、`nop_mnt_idmap`、`security_msg_queue_alloc` 等全部 OK |
+| OPlus 符号 | `update_ddl_hit_history`、`ddl_sdata`、`oplus_bsp_sched_assist` 均存在 → ddl kprobe 守卫适用 |
+| 其它 | `pid_max=32768`、cgroup 仅 `memory` 控制器、SELinux Enforcing、`/proc/config.gz` 可读 |
+
 ## 状态
 
 **首版：可构建、未真机验证。**
