@@ -1,6 +1,6 @@
 id=phdroid-gt8
 name=phDroid GT8 (auto)
-version=v1.0.0-gt8
+version=v1.0.0
 versionCode=10000
 author=gt8-lkm
 description=6 个内核模块，原厂 GKI 6.6.x-android15-8/KMI gen 8（realme GT8 / RMX6699）；开机自动加载，保留 bootloop 守卫。立即加载：sh load.sh
