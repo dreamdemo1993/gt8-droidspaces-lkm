@@ -39,7 +39,7 @@
 
 - 构建：GitHub Actions（`droid_lkm` / `vendor` / `misc` / `pids` / `macvlan` / `ip6table_nat`）
 - 工具链：DDK `android15-6.6` 自带 `clang-r510928`，与设备内核 `Android (11368308) clang 18.0.0 (r510928)` 完全一致
-- 产物：`phDroid-GT8-v1.0.0-gt8.zip`（[gt8-latest release](https://github.com/dreamdemo1993/gt8-droidspaces-lkm/releases/tag/gt8-latest)）
+- 产物：`phDroid-GT8-v1.0.0.zip`（[gt8-latest release](https://github.com/dreamdemo1993/gt8-droidspaces-lkm/releases/tag/v1.0.0)）
 - vermagic：`6.6.127-4k-...-dirty SMP preempt mod_unload modversions aarch64`，`CONFIG_MODVERSIONS=y` 下可加载到 `6.6.118-android15-8`
 
 真机实测：macvlan 可建接口、ip6tables nat 可用、devtmpfs 已注册、PID/IPC 命名空间可用、
